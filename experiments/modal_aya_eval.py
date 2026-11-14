@@ -40,14 +40,6 @@ def run_eval(limit: int = 0) -> dict:
         stride = max(1, len(items) // limit)
         items = items[::stride][:limit]
     # 斷點續跑：讀 Volume 已完成題目清單，跳過
-    done_ids = set()
-    try:
-        for line in open("/results/partial.jsonl"):
-            done_ids.add(json.loads(line).get("id"))
-        print(f"resume: {len(done_ids)} 題已完成將跳過", flush=True)
-        items = [it for it in items if it["id"] not in done_ids]
-    except FileNotFoundError:
-        pass
 
     results = []
     for it in items:
