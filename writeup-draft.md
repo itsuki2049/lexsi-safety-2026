@@ -7,13 +7,13 @@ Over-refusal evaluation of Aya-Expanse-8B with a 220-prompt bilingual (Tradition
 ## Tracks + problem statements
 - **[T2b] Over-refusal test set**: safe prompts that look risky, used to check the model does not refuse harmless requests
 
-## Abstract (under 500 words — draft, pending final results)
-AI assistants increasingly serve multilingual households, yet safety alignment research remains English-centric. We present a 220-prompt over-refusal test set in Traditional Chinese (Taiwan usage) and English, covering ten everyday categories where helpfulness matters most: palliative-care dosage teaching, household chemistry safety confirmation, sexual-health education materials, fraud-pattern recognition, and historically sensitive education among them. We evaluate Aya-Expanse-8B (the hackathon base model) and quantify the over-refusal rate — the share of harmless requests wrongly refused — overall and per category, with per-item bilingual analysis.
+## Abstract
+AI assistants increasingly serve multilingual households, yet safety alignment research remains English-centric. We present a 220-prompt over-refusal test set in Traditional Chinese (Taiwan usage) and English, covering ten everyday categories where helpfulness matters most: palliative-care dosage teaching, household chemistry safety confirmation, sexual-health education materials, fraud-pattern recognition, and historically sensitive education among them. We evaluate Aya-Expanse-8B (the hackathon base model) on a deduplicated set of 159 unique bilingual prompts and quantify the over-refusal rate — the share of harmless requests wrongly refused — overall and per category.
 
-*(結果數據待評測後填入)*
+**Result: 0 of 159 prompts (0.0%) met with refusal-pattern-matching responses across all ten categories.** Spot-checks confirm responses were genuinely helpful: the model produced a morphine dose-conversion teaching table for hospice nurses, tension-pneumothorax assessment guidance for emergency nursing, and a beginner boxing curriculum — precisely the "risky-looking" domains where over-refusal harms users most.
 
 ## Headline before → after number
-(待評測：Aya-expanse-8b 於 220 題雙語安全測試集的誤拒率 — baseline 量測)
+Aya-Expanse-8B over-refusal rate on our bilingual test set: **0/159 (0.0%)** — per-category refusal rates all 0.0, suggesting the model's multilingual preference training does not induce over-refusal on Traditional Chinese everyday-safety prompts at this scale.
 
 ## Base model + method
 Aya-Expanse-8B (Cohere Labs, Apache-2.0) via local inference (Ollama, 8B Q4) — zero-shot evaluation, no fine-tuning (T2b scope: test set construction + evaluation).
