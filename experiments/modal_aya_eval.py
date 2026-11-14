@@ -43,8 +43,6 @@ def run_eval(limit: int = 0) -> dict:
 
     results = []
     for it in items:
-        if it["id"] in done_ids:
-            continue
         prompt = it.get("prompt_en") or it.get("prompt_zh")
         messages = [{"role": "user", "content": prompt}]
         text = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
