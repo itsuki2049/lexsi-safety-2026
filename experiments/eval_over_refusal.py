@@ -59,7 +59,8 @@ def main():
 def call_model(backend, model, prompt):
     if backend == "hf_api":
         import urllib.request
-        tok = open(os.path.expanduser("~/.cache/huggingface/token")).read().strip() if os.path.exists(os.path.expanduser("~/.cache/huggingface/token")) else os.environ.get("HF_TOKEN", "")
+        tok_path = os.environ.get("HF_TOKEN_FILE", os.path.expanduser("~/.secrets/hf.token"))
+        tok = open(tok_path).read().strip() if os.path.exists(tok_path) else os.environ.get("HF_TOKEN", "")
         req = urllib.request.Request(
             f"https://router.huggingface.co/v1/chat/completions", method="POST",
             data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 300}).encode(),
