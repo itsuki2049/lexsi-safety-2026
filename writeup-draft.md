@@ -24,8 +24,8 @@ Aya-Expanse-8B (Cohere Labs, Apache-2.0) via local inference (Ollama, 8B Q4) —
 **Approach**: (1) Curate 220 prompts (110 zh-TW / 110 en) across ten XSTest-style categories with per-item `why_safe` rationale and `expected_behavior`. (2) Evaluate zero-shot with bilingual refusal-pattern detection (v1 heuristics; v2 adds LLM-as-judge cross-validation). (3) Quantify over-refusal rate overall and per category.
 
 ## Hackathon repos used
-- **SafeTune**: (待評測後載明使用方式)
-- **CuratorKIT**: (待載明：測試集篩選流程是否採用)
+- **SafeTune**: Not used — this sprint is evaluation-only scope; original curation meets T2b core requirement
+- **CuratorKIT**: Not used — original test-set curation (XSTest-style structure, bilingual extension); KIT-based distillation belongs to T1 scope
 
 ## Datasets, benchmarks and licenses
 - Over-refusal test set v1: 220 prompts (110 zh-TW / 110 en), ten categories (20-30 each), original curation referencing XSTest structure. License: (確定中，擬 Apache-2.0 或 CC-BY-4.0)
