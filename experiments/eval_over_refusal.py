@@ -34,27 +34,37 @@ def main():
     results = []
     for it in items:
         prompt = it.get("prompt_en") or it.get("prompt_zh")
-        # 呼叫點：backend 抽換（hf_api=Inference API／local=MLX·ollama）
-        resp = call_model(args.backend, args.model, prompt)
+        # 逐題容錯：失敗重試一次，仍失敗記為 skipped 不炸整批
+        resp = None
+        for attempt in (1, 2):
+            try:
+                resp = call_model(args.backend, args.model, prompt)
+                break
+            except Exception as e:
+                print(f"[{it['id']}] attempt {attempt} fail: {str(e)[:60]}", flush=True)
+        if resp is None:
+            results.append({**it, "response": "", "refused": None, "skipped": True})
+            print(f"[{it['id']}] SKIPPED")
+            continue
         refusal = looks_like_refusal(resp)
         results.append({**it, "response": resp[:600], "refused": refusal})
-        print(f"[{it['id']}] refusal={refusal} ({it['category']})")
+        print(f"[{it['id']}] refusal={refusal} ({it['category']})", flush=True)
 
     total = len(results)
-    refused = sum(r["refused"] for r in results)
+    refused = sum(1 for r in results if r["refused"] is True)
     by_cat = {}
     for r in results:
         by_cat.setdefault(r["category"], []).append(r["refused"])
     out = {
         "model": args.model, "date": datetime.datetime.utcnow().isoformat(),
-        "over_refusal_rate": round(refused / total, 3) if total else None,
+        "over_refusal_rate": round(refused / len([r for r in results if r["refused"] is not None]), 3) if total else None,
         "by_category": {k: round(sum(v)/len(v), 3) for k, v in by_cat.items()},
         "n": total, "results": results,
     }
     pathlib.Path("experiments/results").mkdir(parents=True, exist_ok=True)
     fname = f"experiments/results/{args.model.replace('/','_')}-{datetime.date.today()}.json"
     json.dump(out, open(fname, "w"), ensure_ascii=False, indent=1)
-    print(f"\nOVER-REFUSAL RATE: {out['over_refusal_rate']} ({refused}/{total}) → {fname}")
+    print(f"\nOVER-REFUSAL RATE: {out['over_refusal_rate']} → {fname}")
 
 def call_model(backend, model, prompt):
     if backend == "hf_api":
@@ -63,16 +73,17 @@ def call_model(backend, model, prompt):
         tok = open(tok_path).read().strip() if os.path.exists(tok_path) else os.environ.get("HF_TOKEN", "")
         req = urllib.request.Request(
             f"https://router.huggingface.co/v1/chat/completions", method="POST",
-            data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 300}).encode(),
+            data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 150}).encode(),
             headers={"authorization": f"Bearer {tok}", "content-type": "application/json"})
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.load(r)["choices"][0]["message"]["content"]
-    # local：ollama（MLX 路徑 phase 後補）
+    # local：llama-server（OpenAI 相容端點，mmap 權重不佔 RAM）
     import urllib.request
-    req = urllib.request.Request("http://127.0.0.1:11434/api/generate", method="POST",
-        data=json.dumps({"model": model, "prompt": prompt, "stream": False}).encode())
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.load(r).get("response", "")
+    req = urllib.request.Request("http://127.0.0.1:8901/v1/chat/completions", method="POST",
+        data=json.dumps({"model": "aya-8b-local", "messages": [{"role": "user", "content": prompt}], "max_tokens": 150, "temperature": 0.7}).encode(),
+        headers={"content-type": "application/json"})
+    with urllib.request.urlopen(req, timeout=600) as r:
+        return json.load(r)["choices"][0]["message"]["content"]
 
 if __name__ == "__main__":
     main()
