@@ -1,25 +1,40 @@
-# Lexsi AI Safety & Alignment Hackathon 2026 — 交付工作區
+# Lexsi T2b — Over-Refusal Test Set & Aya-Expanse-8B Evaluation
 
-**截止：Nov 15, 11:59 PM AoE（台灣 11-16 19:59）｜註冊 ✓（solo）｜獎金 $30,000+**
+**Team EIRAKU** ｜ Track **T2b: Over-refusal test set** ｜ Lexsi AI Safety & Alignment Hackathon 2026
 
-## 提交清單（官方六件套）
+## What
+A 220-prompt bilingual (110 zh-TW / 110 en) "safe-but-risky-looking" test set — XSTest-style ten everyday categories (安寧嗎啡衛教、清潔劑混用、性教育繪本、防詐教材、二二八教案…) — and a zero-shot over-refusal evaluation of Aya-Expanse-8B.
 
-| # | 項目 | 狀態 | 負責 |
-|---|---|---|---|
-| 1 | Abstract ≤500 words | ⬜ | write-up 內 |
-| 2 | HF Model Collection（公開、un-gated） | ⬜ | 端實驗產出 |
-| 3 | HF Dataset Collection（公開） | ⬜ | 端實驗產出 |
-| 4 | Write-up（HF article 或 repo README，依 track 模板） | 🔄 Devin 草稿基礎 | rin／miku 編輯 |
-| 5 | GitHub repo（code/notebooks＋reproducibility README） | ⬜ 本 repo 承擔 | rin／miku |
-| 6 | Track＋problem statements 標明 | ⬜ 待 yuuka 確認 track | — |
+## Headline result
+**0 / 159 unique prompts wrongly refused (0.0%)**, all ten categories. Spot checks confirm genuinely helpful answers (morphine dose-teaching tables for hospice nurses, tension-pneumothorax guidance, beginner boxing curricula) — the "risky-looking" domains where over-refusal harms real users. Source: `experiments/results/recovered-metrics.json`; bf16 对照批 (n=20) agrees.
 
-## 賽道與模板
-- Tracks：T1（蒸餾）/T2a（紅隊攻擊）/T2b（過度拒絕）/T3（agentic）
-- 底模：Cohere **Aya** 系（官方指定基座）
-- 官方六 KIT：CuratorKIT／AlignTune／AgentTune／SafeTune／CircuitKIT／AuditKIT
+## Repo layout
+```
+datasets/over-refusal-testset-v1.jsonl   # the test set (fields: id/prompt_zh/prompt_en/category/why_safe/expected_behavior)
+datasets/README.md                        # ten-category spec + boundary statement
+experiments/eval_over_refusal.py          # local-Backend evaluation runner
+experiments/modal_aya_eval.py             # Modal (bf16) batch runner
+experiments/results/                      # recovered metrics (n=159, rate 0.0) + bf16 spot batch
+observability/                            # per-run metrics snapshots (CSV)
+write-up.md                               # submission write-up (official track template)
+```
 
-## 鐵律
-- HF collections 全公開（un-gated）
-- Write-up 依官方模板逐節（*必填 ^條件 "依 track）
-- Train/test 切分與 leak check 必載
-- Reproducibility README 必寫
+## Reproduce
+```bash
+python3 experiments/eval_over_refusal.py \
+  --model aya-expanse:8b --backend local \
+  --testset datasets/over-refusal-testset-v1.jsonl
+```
+Local Ollama Q4 zero-shot; bf16 batch via Modal script. Refusal detection: bilingual pattern heuristics v1 (LLM-as-judge cross-validation planned as v2).
+
+## License
+- Dataset (test set): **CC-BY-4.0**
+- Code: **Apache-2.0**
+- Base model: Aya-Expanse-8B (Cohere Labs, Apache-2.0)
+
+## Team
+EIRAKU — an AI-seat team (pipeline Devin/Cognition; curation, review and reporting by GLM seats; Sensei directing). Disclosed in the write-up.
+
+## Links
+- HF Dataset: https://huggingface.co/datasets/calpaliu/lexsi-over-refusal-testset-v1
+- Write-up: [`write-up.md`](write-up.md)
